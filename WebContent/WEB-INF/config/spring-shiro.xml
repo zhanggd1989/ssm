@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- 配置缓存管理器 -->
+	 <bean id="shiro-cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+     	<property name="cacheManager" ref="cacheManagerFactory" />
+ 	</bean>
+    
+	<!-- 配置凭证匹配器 -->
+	<bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+		<property name="hashAlgorithmName" value="md5" />
+		<property name="storedCredentialsHexEncoded" value="true" />  
+        <property name="hashIterations" value="1" /> 
+	</bean>
+
+	<!-- 配置权限管理器 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="myRealm" />
+		<!-- 注入缓存管理器 -->
+		<property name="cacheManager" ref="shiro-cacheManager" /> 
+		<!-- 注入session管理器 -->  
+    	<!-- <property name="sessionManager" ref="sessionManager" /> -->
+	</bean>
+
+	<!-- Realm -->
+	<bean id="myRealm" class="com.zhang.common.realm.UserRealm">
+		<property name="credentialsMatcher" ref="credentialsMatcher" />
+	</bean>
+
+	<!-- 配置安全认证过滤器 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- 配置权限管理器 -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 开始登录时的链接(可根据项目的URL进行替换),非必须的属性,默认会自动寻找Web工程根目录下的"/login.jsp"页面 -->
+		<!-- <property name="loginUrl" value="/login" /> -->
+		<!-- 登录成功后跳转的连接(本例中此属性用不到,因为登录成功后的处理逻辑在LoginController里硬编码为main.jsp) -->
+		<!-- <property name="successUrl" value="index" /> -->
+		<!-- 用户访问未对其授权的资源时,所显示的连接 -->
+		<!-- <property name="unauthorizedUrl" value="/unauthorized" /> -->
+		<!-- 权限配置 -->
+		<!-- Shiro连接约束配置,即过滤链的定义 -->
+		<!-- anon：它对应的过滤器里面是空的,什么都没做,这里.do和.jsp后面的*表示参数,比方说login.jsp?main这种 -->
+		<!-- authc：该过滤器下的页面必须验证后才能访问,它是Shiro内置的一个拦截器org.apache.shiro.web.filter.authc.FormAuthenticationFilter -->
+		<property name="filterChainDefinitions">
+			<value>
+				<!-- anon表示此地址不需要任何权限即可访问 -->
+			    /img/**=anon  
+			    /js/**=anon
+			    /css/**=anon
+			    /html/**=anon
+			    /login = anon
+			    
+				<!-- perms[user:query]表示访问此连接需要权限为user:query的用户 -->
+				<!-- /user=perms[user:query] -->
+				<!-- roles[manager]表示访问此连接需要用户的角色为manager -->
+				<!--/user/add=roles[manager]-->
+				<!--/user/del/**=roles[admin]-->
+				<!--/user/edit/**=roles[manager]-->
+				<!--所有的请求(除去配置的静态资源请求或请求地址为anon的请求)都要通过登录验证,如果未登录则跳到/login -->
+				<!--/** = authc-->
+			</value>
+		</property>
+	</bean>
+
+	<!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+</beans>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhang.oa.dao.LeaveBillMapper">
+
+	<resultMap id="leaveBillResult" type="com.zhang.oa.domain.LeaveBill">
+		<id column="id" property="id" />
+		<result column="apply_time" property="applyTime" />
+		<result column="content" property="content" />
+		<result column="start_time" property="startTime" />
+		<result column="end_time" property="endTime" />
+		<result column="remarks" property="remarks" />
+		<result column="state" property="state" />
+		<association property="applicant" 
+			javaType="com.zhang.sys.domain.User" resultMap="LeaveBillUserResult" />
+	</resultMap>
+	
+	<resultMap id="LeaveBillUserResult" type="com.zhang.sys.domain.User">
+	<result column="applicant_id" property="id" />
+		<result column="applicant_name" property="realName" />
+	</resultMap>
+
+	<sql id="leaveBillColumns">
+		a.id,
+		a.apply_time,
+		a.content,
+		a.start_time,
+		a.end_time,
+		a.remarks,
+		a.state,
+	</sql>
+	<select id="listAllLeaveBills" resultMap="leaveBillResult">
+		SELECT
+		<include refid="leaveBillColumns" />
+		b.id AS 'applicant_id', b.real_name AS 'applicant_name'
+		  FROM oa_leavebill a, sys_user b 
+		 WHERE a.applicant_id = b.id
+		 LIMIT #{0}, #{1}
+	</select>
+	
+	<select id="listAllLeaveBillsCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) 
+		  FROM oa_leavebill
+	</select>
+	
+	<insert id="addLeaveBill" parameterType="com.zhang.oa.domain.LeaveBill">
+		INSERT INTO oa_leavebill(applicant_id, apply_time, content, start_time, end_time, remarks)
+		     VALUES (#{applicant.id}, #{applyTime}, #{content}, #{startTime}, #{endTime}, #{remarks})
+	</insert>
+	
+	<update id="editLeaveBill" parameterType="com.zhang.oa.domain.LeaveBill">
+		UPDATE oa_leavebill 
+		   SET content = #{content}, start_time = #{startTime},
+		       end_time = #{endTime}, remarks = #{remarks}
+		 WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteLeaveBillById" parameterType="Integer">
+		DELETE 
+		  FROM oa_leavebill
+		 WHERE id = #{id}
+	</delete>
+	
+	<select id="findLeaveBillById" parameterType="String" resultMap="leaveBillResult">
+		SELECT a.* ,
+		       b.id AS 'applicant_id', b.real_name AS 'applicant_name'
+		  FROM oa_leavebill a, sys_user b 
+		WHERE a.applicant_id = b.id 
+		  AND a.id= #{leaveBillId}
+	</select>
+	
+	<update id="updateState">
+		UPDATE oa_leavebill
+		   SET state = #{state}
+		 WHERE id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhang.sys.dao.ResourceMapper">
+
+	<resultMap id="resourceResult" type="com.zhang.sys.domain.Resource">
+		<id column="id" property="id" />
+		<result column="parent_ids" property="parentIds" />
+		<result column="name" property="name" />
+		<result column="type" property="type" />
+		<result column="href" property="href" />
+		<result column="permission" property="permission" />
+		<result column="use_flag" property="useFlag" />
+		<result column="remarks" property="remarks" />
+		<result column="del_flag" property="delFlag" />
+		<result column="role_id" property="roleId" />
+		<association column="parent_id" property="parent" 
+			javaType="com.zhang.sys.domain.Resource" resultMap="parentResourceResult" />
+	</resultMap>
+	
+	<resultMap id="parentResourceResult" type="com.zhang.sys.domain.Resource">
+		<id column="parent_id" property="id" />
+		<result column="parent_name" property="name" />
+	</resultMap>
+	
+	<insert id="addResource" parameterType="com.zhang.sys.domain.Resource">
+		INSERT INTO sys_resource(parent_id, name, type, href, permission, use_flag, remarks)
+		VALUES (#{parent.id}, #{name}, #{type}, #{href}, #{permission}, #{useFlag}, #{remarks})
+	</insert>
+	
+	<update id="editResource" parameterType="com.zhang.sys.domain.Resource">
+		UPDATE sys_resource SET parent_id = #{parent.id}, name = #{name}, 
+							    type=#{type}, href = #{href}, 
+							    permission = #{permission}, use_flag = #{useFlag},
+							    remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteResourceById" parameterType="Integer">
+		UPDATE sys_resource 
+		SET del_flag = '1'
+		WHERE id = #{id} 
+		OR parent_id = #{id}
+	</delete>
+	
+	<delete id="deleteResouceByRoleId" parameterType="String">
+		DELETE FROM sys_role_resource
+		WHERE role_id = #{roleId}
+	</delete>
+	
+	<insert id="saveResourceByRoleId">
+		INSERT INTO sys_role_resource(role_id, resource_id)
+		     VALUES (#{0}, #{1})
+	</insert>
+	
+	<select id="findResourcesByParentId" parameterType="String" resultMap="resourceResult">
+		SELECT t1.*,
+		       t2.role_id,
+		       t3.id AS 'parent_id', t3.name AS 'parent_name'
+		  FROM sys_resource t1
+     LEFT JOIN sys_role_resource t2 ON t1.id = t2.resource_id
+     LEFT JOIN sys_resource t3 ON t1.parent_id = t3.id 
+		  WHERE t1.parent_id = #{parentId}
+		  AND t1.del_flag = '0'
+		  ORDER BY t1.id
+	</select>
+	
+	<select id="findResourceCountsByParentId" parameterType="String" resultType="java.lang.Long">
+		SELECT count(1)
+		  FROM sys_resource t 
+		 WHERE t.parent_id = #{parentId} 
+		   AND t.del_flag = '0'
+	</select>
+	
+	<select id="findResourcesByRoleId" parameterType="String" resultMap="resourceResult">
+		SELECT t1.*, t2.role_id
+		  FROM sys_resource t1 
+	 LEFT JOIN sys_role_resource t2 ON t1.id = t2.resource_id, sys_role t3
+       	 WHERE t3.id = #{roleId} 
+       	   AND t2.role_Id = t3.id
+       	   AND t1.del_flag = '0'
+	  ORDER BY t1.id
+	</select>
+	
+</mapper>

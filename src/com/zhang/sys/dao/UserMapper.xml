@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhang.sys.dao.UserMapper">
+
+	<resultMap id="userResult" type="com.zhang.sys.domain.User">
+		<id column="id" property="id" />
+		<result column="login_name" property="loginName" />
+		<result column="password" property="password" />
+		<result column="real_name" property="realName" />
+		<result column="type" property="type" />
+		<result column="sex" property="sex" />
+		<result column="email" property="email" />
+		<result column="phone" property="phone" />
+		<result column="fax" property="fax" />
+		<result column="use_flag" property="useFlag" />
+		<result column="remarks" property="remarks" />
+		<result column="del_flag" property="delFlag" />
+		<association column="company_id" property="company" 
+			javaType="com.zhang.sys.domain.Organization" resultMap="userCompanyResult" />
+		<association column="department_id" property="department" 
+			javaType="com.zhang.sys.domain.Organization" resultMap="userdepartmentResult" />
+	</resultMap>
+
+	<resultMap id="userCompanyResult" type="com.zhang.sys.domain.Organization">
+		<id column="company_id" property="id" />
+		<result column="company_name" property="name" />
+	</resultMap>
+
+	<resultMap id="userdepartmentResult" type="com.zhang.sys.domain.Organization">
+		<id column="department_id" property="id" />
+		<result column="department_name" property="name" />
+	</resultMap>
+
+	<sql id="userColumns">
+		a.id,
+		a.login_name,
+		a.password,
+		a.real_name,
+		a.type,
+		a.sex,
+		a.email,
+		a.phone,
+		a.fax,
+		a.use_flag,
+		a.remarks,
+		a.company_id,
+		a.department_id,
+	</sql>
+	
+	<select id="listAllUsers" resultMap="userResult">
+		SELECT
+		<include refid="userColumns" />
+		b.name AS "company_name",
+		c.name AS "department_name"
+		FROM sys_user a
+		LEFT JOIN
+		sys_organization b ON a.company_id = b.id
+		LEFT JOIN
+		sys_organization c ON a.department_id =c.id
+		WHERE a.del_flag = '0'
+		LIMIT #{0}, #{1}
+	</select>
+	
+	<select id="listAllUsersCount" resultType="Integer">
+		SELECT COUNT(1) 
+		FROM sys_user a
+		WHERE a.del_flag = '0'
+	</select>
+
+	<insert id="addUser" parameterType="com.zhang.sys.domain.User">
+		INSERT INTO sys_user(login_name, password, real_name, type, company_id, department_id, 
+		                   sex,email, phone, fax, use_flag, remarks) 
+		VALUES (#{loginName}, #{password}, #{realName}, #{type}, #{company.id}, #{department.id},  
+		        #{sex}, #{email}, #{phone}, #{fax}, #{useFlag}, #{remarks})
+	</insert>
+
+	<update id="editUser" parameterType="com.zhang.sys.domain.User">
+		UPDATE sys_user SET real_name = #{realName}, type = #{type}, 
+						  company_id = #{company.id}, department_id = #{department.id},
+		                  sex = #{sex}, email = #{email}, 
+		                  phone = #{phone}, fax = #{fax}, 
+		                  use_flag = #{useFlag}, remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteUserById" parameterType="Integer">
+		UPDATE sys_user SET del_flag = '1'
+		WHERE id = #{id}
+	</delete>
+	
+	<select id="findUserByLoginName" parameterType="String" resultMap="userResult">
+		SELECT a.*
+		FROM sys_user a
+		WHERE a.login_name = #{loginName}
+		AND a.del_flag = '0'
+	</select>
+	
+	<update id="editUserPass" parameterType="com.zhang.sys.domain.User">
+		UPDATE sys_user 
+		SET password = #{password} 
+		WHERE id = #{id}
+	</update>
+	
+	<select id="userTree" resultMap="userResult">
+		SELECT *
+		FROM sys_user a
+		WHERE a.del_flag = '0'
+	</select>
+	
+</mapper> 

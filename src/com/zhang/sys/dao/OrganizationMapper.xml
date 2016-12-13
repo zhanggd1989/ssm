@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhang.sys.dao.OrganizationMapper">
+
+	<resultMap id="organizationResult" type="com.zhang.sys.domain.Organization">
+		<id column="id" property="id" />
+		<result column="parent_ids" property="parentIds" />
+		<result column="name" property="name" />
+		<result column="type" property="type" />
+		<result column="postcode" property="postcode" />
+		<result column="address" property="address" />
+		<result column="use_flag" property="useFlag" />
+		<result column="remarks" property="remarks" />
+		<result column="del_flag" property="delFlag" />
+		<association column="parent_id" property="parent" 
+			javaType="com.zhang.sys.domain.Organization" resultMap="parentOrganizationResult" />
+		<association column="master_id" property="master" 
+			javaType="com.zhang.sys.domain.User" resultMap="organizationUserResult" />
+	</resultMap>
+	
+	<resultMap id="parentOrganizationResult" type="com.zhang.sys.domain.Organization">
+		<id column="parent_id" property="id" />
+		<result column="parent_name" property="name" />
+	</resultMap>
+	
+	<resultMap id="organizationUserResult" type="com.zhang.sys.domain.User">
+		<id column="user_id" property="id" />
+		<result column="user_name" property="realName" />
+	</resultMap>
+	
+	<insert id="addOrganization" parameterType="com.zhang.sys.domain.Organization">
+		INSERT INTO sys_organization(parent_id, name, type, postcode, address, master_id, use_flag, remarks)
+		     VALUES (#{parent.id}, #{name}, #{type}, #{postcode}, #{address}, #{master.id}, #{useFlag}, #{remarks})
+	</insert>
+	
+	<update id="editOrganization" parameterType="com.zhang.sys.domain.Organization">
+		UPDATE sys_organization 
+		   SET parent_id = #{parent.id}, name = #{name}, 
+			   type = #{type}, postcode = #{postcode},
+			   address = #{address}, master_id = #{master.id}, 
+			   use_flag = #{useFlag}, remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteOrganizationById" parameterType="Integer">
+		UPDATE sys_organization 
+		   SET del_flag = '1'
+		WHERE id = #{id} 
+		   OR parent_id = #{id}
+	</delete>
+	
+	<select id="findOrganizationsByParentId" parameterType="java.util.Map" resultMap="organizationResult">
+		SELECT t1.*, 
+		       t2.id AS 'user_id', t2.real_name AS 'user_name',
+		       t3.id AS 'parent_id', t3.name AS 'parent_name' 
+		  FROM sys_organization t1 
+     LEFT JOIN sys_user t2 ON t1.master_id = t2.id
+     LEFT JOIN sys_organization t3 ON t1.parent_id = t3.id 
+		 WHERE t1.parent_id = #{parentId} 
+		   <if test="type != 2">
+		   AND t1.type = '0'
+		   </if>
+		   AND t1.del_flag = '0'
+	</select>
+	
+	<select id="findOrganizationCountsByparentId" parameterType="java.util.Map" resultType="java.lang.Long">
+		SELECT count(1) 
+		  FROM sys_organization t
+	    WHERE t.parent_id = #{parentId} 
+	       <if test="type != 2">
+		   AND t.type = '0'
+		   </if>
+	      AND t.del_flag = '0'
+	</select>
+	
+	<select id="departmentTreeByCompanyId" parameterType="String" resultMap="organizationResult">
+		SELECT t1.*
+		  FROM sys_organization t1
+		 WHERE t1.parent_id = #{companyId}
+		   AND t1.type = '1'
+	</select>
+	
+</mapper>

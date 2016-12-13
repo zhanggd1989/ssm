@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhang.sys.dao.RoleMapper">
+
+	<resultMap id="roleResult" type="com.zhang.sys.domain.Role">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="type" property="type" />
+		<result column="data_scope" property="dataScope" />
+		<result column="use_flag" property="useFlag" />
+		<result column="remarks" property="remarks" />
+		<result column="del_flag" property="delFlag" />
+		<result column="user_id" property="userId" />
+	</resultMap>
+
+	<sql id="roleColumns">
+		a.id,
+		a.name,
+		a.type,
+		a.data_scope,
+		a.use_flag,
+		a.remarks
+	</sql>
+	<select id="listAllRoles" resultMap="roleResult">
+		SELECT
+		<include refid="roleColumns" />
+		FROM sys_role a
+		WHERE a.del_flag = '0'
+		LIMIT #{0}, #{1}
+	</select>
+	
+	<select id="listAllRolesCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) 
+		FROM sys_role
+		WHERE del_flag = '0'
+	</select>
+	
+	<insert id="addRole" parameterType="com.zhang.sys.domain.Role">
+		INSERT INTO sys_role(name, type, data_scope, use_flag, remarks)
+		VALUES (#{name}, #{type}, #{dataScope}, #{useFlag}, #{remarks})
+	</insert>
+	
+	<update id="editRole" parameterType="com.zhang.sys.domain.Role">
+		UPDATE sys_role SET name = #{name}, type = #{type}, data_scope = #{dataScope}, 
+						  use_flag = #{useFlag}, remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteRoleById" parameterType="Integer">
+		UPDATE sys_role 
+		SET del_flag = '1'
+		WHERE id = #{id}
+	</delete>
+	
+	<insert id="addRolesByUserId">
+		INSERT INTO sys_user_role (user_id, role_id)
+		VALUES (#{0}, #{1})
+	</insert>
+	
+	<select id="findRolesByUserId" parameterType="Integer" resultMap="roleResult">
+		SELECT a.*
+		FROM sys_role a, sys_user b
+		WHERE a.id = b.role_id
+		AND b.user_id = #{userId}
+	</select>
+	
+	<delete id="deleteRoleByUserId" parameterType="String">
+		DELETE FROM sys_user_role
+		WHERE user_id = #{userId}
+	</delete>
+	
+	<insert id="saveRoleByUserId">
+		INSERT INTO sys_user_role(user_id, role_id)
+		     VALUES (#{0}, #{1})
+	</insert>
+	
+	<select id="roleTreeByUserId" resultMap="roleResult">
+		SELECT t1.*, t2.user_id
+		  FROM sys_role t1 
+		LEFT JOIN sys_user_role t2 ON t1.id = t2.role_id
+		AND t1.del_flag = '0'
+		ORDER BY t1.id
+	</select>
+	
+	<select id="findRolesByLoginName" parameterType="String" resultMap="roleResult">
+		SELECT t1.*, t2.user_id
+		  FROM sys_role t1 
+	 LEFT JOIN sys_user_role t2 ON t1.id = t2.role_id, sys_user t3
+       	 WHERE t3.login_name = #{loginName} 
+       	   AND t2.user_Id = t3.id
+       	   AND t1.del_flag = '0'
+	  ORDER BY t1.id
+	</select>
+	
+</mapper>
