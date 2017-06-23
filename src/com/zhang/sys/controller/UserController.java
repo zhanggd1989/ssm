@@ -1,25 +1,27 @@
 package com.zhang.sys.controller;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.zhang.sys.domain.Msg;
+import com.zhang.sys.domain.User;
+import com.zhang.sys.service.UserService;
+import net.sf.json.JSONObject;
+import org.apache.shiro.crypto.hash.Md5Hash;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.shiro.crypto.hash.Md5Hash;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.zhang.sys.domain.User;
-import com.zhang.sys.service.UserService;
-
-import net.sf.json.JSONObject;
 
 /**
  * 用户管理-Controller
@@ -32,20 +34,26 @@ public class UserController {
 
 	@Autowired
 	private UserService userService;
-	
+
 	/**
-	 * 用户信息主界面
-	 * 
-	 * @author zhanggd
+	 *
+	 * @param pn
+	 * @param model
 	 * @return
-	 * @throws  
-	 * Jun 17, 2016-10:06:28 AM
 	 */
 	@RequestMapping("/list")
 	public String list() {
-		return "sys/user";
+		return "sys/users";
 	}
 
+	@RequestMapping("/dataGrid")
+	@ResponseBody
+	public Msg dataGrid(@RequestParam(value="pn", defaultValue = "1")Integer pn) {
+		PageHelper.startPage(pn, 5);
+		List<User> list = userService.listAllUsers1();
+		PageInfo page = new PageInfo(list,5);
+		return Msg.success().add("pageInfo", page);
+	}
 	/**
 	 * 查询用户信息
 	 * 
@@ -56,24 +64,29 @@ public class UserController {
 	 * @throws  
 	 * Jun 17, 2016-10:06:19 AM
 	 */
-	@RequestMapping("/dataGrid")
-	@ResponseBody
-	public Map<String, Object> dataGrid(String page,String rows) {
-		//当前页  
-        int intPage = Integer.parseInt((page == null || page == "0") ? "1":page);  
-        //每页显示条数  
-        int number = Integer.parseInt((rows == null || rows == "0") ? "10":rows);  
-        //每页的开始记录  第一页为1  第二页为number + 1   
-        int start = (intPage-1)*number;  
+//	@RequestMapping("/dataGrid")
+//	@ResponseBody
+//	public PageInfo dataGrid(String page,String rows) {
+//		//当前页
+//		int intPage = Integer.parseInt((page == null || page == "0") ? "1":page);
+//		//每页显示条数
+//        int number = Integer.parseInt((rows == null || rows == "0") ? "10":rows);
+//		PageHelper.startPage(intPage,number);
+//		List<User> list1 = userService.listAllUsers1();
+//		PageInfo page1 = new PageInfo(list1, 5);
+//		System.out.println(page1.getTotal());
+
+//        //每页的开始记录  第一页为1  第二页为number + 1
+//        int start = (intPage-1)*number;
+//
+//        List<User> list = userService.listAllUsers(start, number);
+//        int listCount = userService.listAllUsersCount();
         
-        List<User> list = userService.listAllUsers(start, number);
-        int listCount = userService.listAllUsersCount();
-        
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("rows", list);
-		map.put("total", listCount);
-		return map;
-	}
+//		Map<String, Object> map = new HashMap<String, Object>();
+//		map.put("rows", list);
+//		map.put("total", listCount);
+//		return map;
+//	}
 
 	/**
 	 * 增加用户信息

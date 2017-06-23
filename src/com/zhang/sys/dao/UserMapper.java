@@ -23,6 +23,8 @@ public interface UserMapper {
 	 */
 	public List<User> listAllUsers(int start, int number);
 
+	public List<User> listAllUsers1();
+
 	/**
 	 * 获取所有User对象条数
 	 * 

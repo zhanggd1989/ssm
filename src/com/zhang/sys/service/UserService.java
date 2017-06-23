@@ -39,6 +39,10 @@ public class UserService {
 		return userMapper.listAllUsers(start, number);
 	}
 
+	public List<User> listAllUsers1() {
+		return userMapper.listAllUsers1();
+	}
+
 	/**
 	 * 获取所有User对象条数
 	 * 
@@ -66,10 +70,10 @@ public class UserService {
 
 	/**
 	 * 编辑User对象
-	 * 
+	 *
 	 * @author zhanggd
 	 * @param user
-	 * @throws  
+	 * @throws
 	 * Jun 16, 2016-3:23:12 PM
 	 */
 	public void editUser(User user) {
