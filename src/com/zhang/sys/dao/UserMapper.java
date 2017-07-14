@@ -1,8 +1,8 @@
 package com.zhang.sys.dao;
 
-import java.util.List;
-
 import com.zhang.sys.domain.User;
+
+import java.util.List;
 
 /**
  * 用户管理-Mapper
@@ -13,27 +13,9 @@ public interface UserMapper {
 
 	/**
 	 * 获取所有User对象
-	 * 
-	 * @author zhanggd
-	 * @param start
-	 * @param number
-	 * @return
-	 * @throws 
-	 * Jun 16, 2016-3:31:48 PM
+	 *
 	 */
-	public List<User> listAllUsers(int start, int number);
-
-	public List<User> listAllUsers1();
-
-	/**
-	 * 获取所有User对象条数
-	 * 
-	 * @author zhanggd
-	 * @return
-	 * @throws 
-	 * Jun 16, 2016-3:32:10 PM
-	 */
-	public int listAllUsersCount();
+	public List<User> listAllUsers();
 
 	/**
 	 * 增加User对象
@@ -97,4 +79,5 @@ public interface UserMapper {
 	 */
 	public List<User> userTree();
 
+    User getUserById(int id);
 }

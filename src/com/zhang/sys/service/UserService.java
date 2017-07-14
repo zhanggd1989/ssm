@@ -1,19 +1,19 @@
 package com.zhang.sys.service;
 
+import com.zhang.sys.dao.UserMapper;
+import com.zhang.sys.domain.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.zhang.sys.dao.UserMapper;
-import com.zhang.sys.domain.User;
-
 /**
  * 用户管理-Service
+ *
  * @author Brian.Zhang
  * Jun 16, 2016-3:06:03 PM
  */
@@ -26,34 +26,11 @@ public class UserService {
 	
 	/**
 	 * 获取所有User对象
-	 * 
-	 * @author zhanggd
-	 * @param start
-	 * @param number
-	 * @return
-	 * @throws  
-	 * Jun 16, 2016-3:21:57 PM
+	 *
 	 */
 	@Transactional(readOnly = true)
-	public List<User> listAllUsers(int start, int number) {
-		return userMapper.listAllUsers(start, number);
-	}
-
-	public List<User> listAllUsers1() {
-		return userMapper.listAllUsers1();
-	}
-
-	/**
-	 * 获取所有User对象条数
-	 * 
-	 * @author zhanggd
-	 * @return
-	 * @throws  
-	 * Jun 16, 2016-3:22:05 PM
-	 */
-	@Transactional(readOnly = true)
-	public int listAllUsersCount() {
-		return userMapper.listAllUsersCount();
+	public List<User> listAllUsers() {
+		return userMapper.listAllUsers();
 	}
 	
 	/**
@@ -67,6 +44,10 @@ public class UserService {
 	public void addUser(User user) {
 		userMapper.addUser(user);
 	}
+
+	public User getUserById(int id){
+		return userMapper.getUserById(id);
+	};
 
 	/**
 	 * 编辑User对象
@@ -138,4 +119,5 @@ public class UserService {
 		}
 		return returnList;
 	}
+
 }

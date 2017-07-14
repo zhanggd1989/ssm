@@ -16,3 +16,15 @@
 	border-spacing:10px;
 	text-align:right
 }
+
+#page_info_area {
+	line-height: 32px;
+}
+
+#page_nav_area ul.pagination {
+	margin: 0;
+}
+
+#page_nav_area {
+    text-align: right;
+}

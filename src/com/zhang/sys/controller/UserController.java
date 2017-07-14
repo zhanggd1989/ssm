@@ -9,13 +9,10 @@ import net.sf.json.JSONObject;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,6 +22,7 @@ import java.util.Map;
 
 /**
  * 用户管理-Controller
+ *
  * @author Brian.Zhang
  * Jun 15, 2016-4:04:10 PM
  */
@@ -36,57 +34,30 @@ public class UserController {
 	private UserService userService;
 
 	/**
+	 * 用户主界面
 	 *
-	 * @param pn
-	 * @param model
-	 * @return
 	 */
 	@RequestMapping("/list")
 	public String list() {
-		return "sys/users";
+		return "sys/user";
 	}
 
-	@RequestMapping("/dataGrid")
-	@ResponseBody
-	public Msg dataGrid(@RequestParam(value="pn", defaultValue = "1")Integer pn) {
-		PageHelper.startPage(pn, 5);
-		List<User> list = userService.listAllUsers1();
-		PageInfo page = new PageInfo(list,5);
-		return Msg.success().add("pageInfo", page);
-	}
 	/**
 	 * 查询用户信息
-	 * 
-	 * @author zhanggd
-	 * @param page
-	 * @param rows
-	 * @return
-	 * @throws  
-	 * Jun 17, 2016-10:06:19 AM
+	 *
 	 */
-//	@RequestMapping("/dataGrid")
-//	@ResponseBody
-//	public PageInfo dataGrid(String page,String rows) {
-//		//当前页
-//		int intPage = Integer.parseInt((page == null || page == "0") ? "1":page);
-//		//每页显示条数
-//        int number = Integer.parseInt((rows == null || rows == "0") ? "10":rows);
-//		PageHelper.startPage(intPage,number);
-//		List<User> list1 = userService.listAllUsers1();
-//		PageInfo page1 = new PageInfo(list1, 5);
-//		System.out.println(page1.getTotal());
-
-//        //每页的开始记录  第一页为1  第二页为number + 1
-//        int start = (intPage-1)*number;
-//
-//        List<User> list = userService.listAllUsers(start, number);
-//        int listCount = userService.listAllUsersCount();
-        
-//		Map<String, Object> map = new HashMap<String, Object>();
-//		map.put("rows", list);
-//		map.put("total", listCount);
-//		return map;
-//	}
+	@RequestMapping("/getUsers")
+	@ResponseBody
+	public Msg getUsers(@RequestParam(value="page") Integer page) {
+		//当前页
+		int intPage = (page == null || page == 0) ? 1 : page;
+		//每页显示条数
+        int number = 10;
+		PageHelper.startPage(intPage, number);
+		List<User> userList = userService.listAllUsers();
+		PageInfo userPage = new PageInfo(userList, number);
+		return Msg.success().add("userPage", userPage);
+	}
 
 	/**
 	 * 增加用户信息
@@ -98,19 +69,45 @@ public class UserController {
 	 * @throws  
 	 * Jun 16, 2016-2:55:38 PM
 	 */
-	@RequestMapping("/addUser")
-	public void addUser(HttpServletRequest request, HttpServletResponse response, User user) {
-		user.setPassword(new Md5Hash(user.getPassword(), user.getLoginName(), 1).toHex());
-		userService.addUser(user);
-		JSONObject object = new JSONObject();
-		object.put("errorMsg", "");
-		object.put("success", true);
-		try {
-			PrintWriter out = response.getWriter();
-			out.write(object.toString());
-		} catch (IOException e) {
-			e.printStackTrace();
+	@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+	@ResponseBody
+	public Msg addUser( User user,BindingResult result) {
+		if(result.hasErrors()) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			List<FieldError> errors = result.getFieldErrors();
+			for(FieldError fieldError : errors) {
+				System.out.println("错误的字段名 :" + fieldError.getField());
+				System.out.println("错误信息 :" + fieldError.getDefaultMessage());
+				map.put(fieldError.getField(),fieldError.getDefaultMessage());
+			}
+			return Msg.failure().add("fieldErrors",map);
+		} else {
+			user.setPassword(new Md5Hash(user.getPassword(), user.getLoginName(), 1).toHex());
+			userService.addUser(user);
+			return Msg.success();
 		}
+	}
+
+	@RequestMapping(value = "/checkUser")
+	@ResponseBody
+	public Msg checkUser(String loginName) {
+		String regx = "^[a-zA-Z0-9_-]{3,16}$";
+		if(!loginName.matches(regx)){
+			return Msg.failure().add("va_msg","用户名必须是3到16位的字母与数字组合");
+		}
+		User user = userService.findUserByLoginName(loginName);
+		if(null != user){
+			return Msg.failure();
+		} else {
+			return Msg.success();
+		}
+
+	}
+	@RequestMapping(value="/getUserById/{id}", method = RequestMethod.GET)
+	@ResponseBody
+	public Msg getUserById(@PathVariable int id){
+		User user = userService.getUserById(id);
+		return Msg.success().add("user",user);
 	}
 	
 	/**
@@ -123,19 +120,11 @@ public class UserController {
 	 * @throws  
 	 * Jun 16, 2016-2:56:07 PM
 	 */
-	@RequestMapping("/editUser")
-	public void editUser(HttpServletResponse response, User user,  @RequestParam("id") int id) {
-		user.setId(id);
+	@RequestMapping(value = "/editUser/{id}",method = RequestMethod.POST)
+	public Msg editUser(User user, @PathVariable int id) {
+			user.setId(id);
 		userService.editUser(user);
-		JSONObject object = new JSONObject();
-		object.put("errorMsg", "");
-		object.put("success", true);
-		try {
-			PrintWriter out = response.getWriter();
-			out.write(object.toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		return Msg.success();
 	}
 	
 	/**

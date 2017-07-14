@@ -1,16 +1,15 @@
 package com.zhang.sys.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.zhang.sys.dao.OrganizationMapper;
+import com.zhang.sys.domain.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zhang.sys.dao.OrganizationMapper;
-import com.zhang.sys.domain.Organization;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -128,28 +127,31 @@ public class OrganizationService {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			Organization organization = list.get(i);
 			map.put("id", organization.getId());
-			map.put("name", organization.getName());
+//			map.put("name", organization.getName());
 			map.put("text", organization.getName());
 			map.put("parent", organization.getParent());
-			map.put("type", organization.getType());
-			map.put("postcode", organization.getPostcode());
-			map.put("address", organization.getAddress());
-			map.put("master", organization.getMaster() == null ? "" : organization.getMaster());
-			map.put("useFlag", organization.getUseFlag());
-			map.put("remarks", organization.getRemarks());
+//			map.put("type", organization.getType());
+//			map.put("postcode", organization.getPostcode());
+//			map.put("address", organization.getAddress());
+//			map.put("master", organization.getMaster() == null ? "" : organization.getMaster());
+//			map.put("useFlag", organization.getUseFlag());
+//			map.put("remarks", organization.getRemarks());
 
-			String node = String.valueOf(organization.getId());
+//			String node = String.valueOf(organization.getId());
 
-			param.put("parentId", parentId);
-			Long count = organizationMapper.findOrganizationCountsByparentId(param);
-			if (count > 0) {
-				// 该节点下有子节点
-				List<Map<String, Object>> listchild = this.doTreeData(node, type);
-				map.put("children", listchild);
-				map.put("state", "open");
-			} else {
+//			param.put("parentId", parentId);
+//			Long count = organizationMapper.findOrganizationCountsByparentId(param);
+//			if (count > 0) {
+//				// 该节点下有子节点
+//				List<Map<String, Object>> listchild = this.doTreeData(node, type);
+//				map.put("children", listchild);
+//				Map map1 = new HashMap();
+//				map1.put("expanded", false);
+//				map.put("nodes",listchild);
+//				map.put("state", map1);
+//			} else {
 				// 无子节点
-			}
+//			}
 			newlist.add(map);
 		}
 		return newlist;
